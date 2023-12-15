@@ -1,7 +1,8 @@
 from PIL import ImageGrab
-from pyautogui import *;
+from pyautogui import *
 from pynput import mouse, keyboard
 from enum import Enum
+import os
 
 class MouseState(Enum):
     IDLE = 0
@@ -23,6 +24,7 @@ Q = "Q_"
 QA = "QA_"
 PREFIX = "20231216_"
 POSTFIX = "_七年级|上|第十一章|图形的运动|翻折|压轴题"
+FILE_DIRECTORY = "./"
 
 def on_click(x, y, button, pressed):
     global MOUSE

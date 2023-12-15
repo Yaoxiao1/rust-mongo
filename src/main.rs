@@ -1,35 +1,40 @@
-use mongodb::{Client, options::{ClientOptions}};
-use std::error::Error;
+use actix_web::{App, HttpServer, HttpRequest, HttpResponse, Error, get, web, Responder, Result};
+use actix_web::middleware::Logger;
+use actix_cors::Cors;
+use serde::Serialize;
+use serde::Deserialize;
+use env_logger::Env;
 use tokio;
-use chrono::{TimeZone, Utc};
-use mongodb::bson::doc;
+mod mongo;
 
 
-const MONGODB_URI:&str = "mongodb://localhost:27017";
+#[get("/show-dbs")]
+async fn show_dbs() -> Result<impl Responder> {
+    let client = mongo::MongoClient::new().await.unwrap();
+    log::info!("connected to databases");
+    let db_list = client.show_dbs().await?;
+    log::info!("get database list");
+    Ok(web::Json(db_list))
+}
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn Error>> {
-    let client_options = ClientOptions::parse(MONGODB_URI).await?;
-    
-    // Set any additional options if needed
-    // client_options.app_name = Some("YourAppName".to_string());
-    
-    // Connect to the MongoDB server
-    let client = Client::with_options(client_options)?;
-    
-    // Access a specific database
-    let questions = client.database("test").collection("questions");
-    
-    // Perform operations on the database   
-    println!("connected!!");
-    let new_doc = doc! {
-        "title": "Parasite",
-        "year": 2020,
-        "plot": "A poor family, the Kims, con their way into becoming the servants of a rich family, the Parks. But their easy life gets complicated when their deception is threatened with exposure.",
-        "released": Utc::now(),
-     };
-    let insert_result = questions.insert_one(new_doc.clone(), None).await?;
-    println!("New document ID: {}", insert_result.inserted_id);
-    
-    Ok(())
+
+#[actix_web::main]
+async fn main() -> std::io::Result<()> {
+
+    env_logger::init_from_env(Env::default().default_filter_or("info"));
+
+    HttpServer::new(|| { 
+
+        let cors = Cors::permissive();
+
+        App::new()
+            .wrap(cors)
+            .wrap(Logger::default())
+            .wrap(Logger::new("%a %{User-Agent}i"))
+            .service(show_dbs)
+            
+        }) 
+        .bind(("127.0.0.1", 8080))?
+        .run()
+        .await
 }

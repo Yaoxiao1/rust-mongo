@@ -12,3 +12,10 @@ bson = { version = "2", features = ["chrono-0_4"] } # Needed for using chrono da
 tokio = "1"
 chrono = "0.4" # Used for setting DateTimes
 serde = "1" # Used in the Map Data into Structs section
+actix-web = "4"
+actix-cors = "0.6.4"
+actix-ws = "0.2.5"
+actix-rt = "2.8.0"
+serde_json = "1.0.93"
+env_logger = "*"
+log="0.4"
