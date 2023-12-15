@@ -16,7 +16,7 @@ function UpdateDb(props) {
         }
     
         fetch_data();
-    }, [])
+    }, [refresh])
     
 
     function refreshPage() {
