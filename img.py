@@ -22,8 +22,8 @@ X0, Y0 = (0, 0)
 RECT_WIDTH = 825
 Q = "Q_"
 QA = "QA_"
-PREFIX = "20231216_"
-POSTFIX = "_七年级|第十一章|图形的运动|翻折|压轴题"
+PREFIX = "20231223_"
+POSTFIX = "_七年级|第九章|整式|整式的除法"
 FILE_DIRECTORY = "./"
 
 def on_click(x, y, button, pressed):
@@ -84,8 +84,10 @@ def main():
     tp = input("Q(1) or QA(2)?: ")
     print(tp)
     tp = 'Q_' if '1' in tp else 'QA_'
-    num = input("please enter the number: ")
+    num = input("\n\n\n\n\n\n\n\nplease enter the number: ")
     file_path = tp + PREFIX + str(num) + POSTFIX + ".png"
+    file_dir = "./tmp"
+    file_path = os.path.join(file_dir, file_path)
     save_picture(file_path, x1, y1)
 
 
