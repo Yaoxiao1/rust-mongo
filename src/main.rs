@@ -1,12 +1,11 @@
-use actix_web::{App, HttpServer, HttpRequest, HttpResponse, Error, get, web, Responder, Result};
-use actix_web::middleware::Logger;
 use actix_cors::Cors;
-use serde::Serialize;
-use serde::Deserialize;
+use actix_web::middleware::Logger;
+use actix_web::{get, web, App, Error, HttpRequest, HttpResponse, HttpServer, Responder, Result};
 use env_logger::Env;
+use serde::Deserialize;
+use serde::Serialize;
 use tokio;
 mod mongo;
-
 
 #[get("/show-dbs")]
 async fn show_dbs() -> Result<impl Responder> {
@@ -17,14 +16,11 @@ async fn show_dbs() -> Result<impl Responder> {
     Ok(web::Json(db_list))
 }
 
-
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-
     env_logger::init_from_env(Env::default().default_filter_or("info"));
 
-    HttpServer::new(|| { 
-
+    HttpServer::new(|| {
         let cors = Cors::permissive();
 
         App::new()
@@ -32,9 +28,8 @@ async fn main() -> std::io::Result<()> {
             .wrap(Logger::default())
             .wrap(Logger::new("%a %{User-Agent}i"))
             .service(show_dbs)
-            
-        }) 
-        .bind(("127.0.0.1", 8080))?
-        .run()
-        .await
+    })
+    .bind(("127.0.0.1", 8080))?
+    .run()
+    .await
 }

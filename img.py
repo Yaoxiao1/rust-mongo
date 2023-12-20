@@ -23,7 +23,7 @@ RECT_WIDTH = 825
 Q = "Q_"
 QA = "QA_"
 PREFIX = "20231216_"
-POSTFIX = "_七年级|上|第十一章|图形的运动|翻折|压轴题"
+POSTFIX = "_七年级|第十一章|图形的运动|翻折|压轴题"
 FILE_DIRECTORY = "./"
 
 def on_click(x, y, button, pressed):
