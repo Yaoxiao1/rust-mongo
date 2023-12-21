@@ -6,6 +6,7 @@ use serde::Deserialize;
 use serde::Serialize;
 use tokio;
 mod mongo;
+mod helper;
 
 #[get("/show-dbs")]
 async fn show_dbs() -> Result<impl Responder> {

@@ -1,49 +1,14 @@
 use bson::{doc, Document};
 use mongodb::*;
-use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::error::Error;
 use std::path::Path;
 use tokio;
+use crate::helper::*;
 
 const MONGODB_URI: &str = "mongodb://localhost:27017";
 pub struct MongoClient {
     client: Client,
-}
-
-type Mydate = u64;
-
-#[derive(Debug, Default, Serialize, Deserialize, Clone)]
-struct Question {
-    pub id: u64,
-    pub q_url: Option<Vec<String>>,
-    pub qa_url: Option<Vec<String>>,
-    pub short_answer: Option<String>,
-    pub tags: String,
-}
-
-#[derive(Debug, Default, Serialize, Deserialize, Clone)]
-struct Paper {
-    pub id: u64,
-    pub date: Mydate,
-    pub paper_name: String,
-    pub question_map: HashMap<u64, u64>,
-}
-
-#[derive(Debug, Default, Serialize, Deserialize, Clone)]
-struct User {
-    pub id: u64,
-    pub name: String,
-    pub paper_name: String,
-    pub date: Mydate,
-    pub wrong_question_list: Vec<String>,
-    pub homework_question_list: Vec<String>,
-}
-
-#[derive(Debug, Default, Serialize, Deserialize, Clone)]
-struct UserInfo {
-    pub id: u64,
-    pub name : String
 }
 
 #[derive(Debug)]
@@ -53,6 +18,7 @@ enum MongoError {
     FileNameError(String),
     NoSuchUser,
     NoSuchId,
+    NoSuchPaper,
 }
 
 impl std::fmt::Display for MongoError {
@@ -109,7 +75,7 @@ impl MongoClient {
         paper.id = paper_cnt.into();
 
         // init question
-        let question_coll = question_db.collection::<Document>("questions");
+        let question_coll = question_db.collection::<Question>("questions");
         let cnt = question_coll
             .estimated_document_count(None)
             .await
@@ -188,14 +154,7 @@ impl MongoClient {
 
         //insert questions collections
         for (_, question) in question_map {
-            let document: Document = doc! {
-                "id" : question.id.to_string(),
-                "q_url": question.q_url,
-                "qa_url" : question.qa_url,
-                "short_answer": question.short_answer,
-                "tags": question.tags
-            };
-            match question_coll.insert_one(document, None).await {
+            match question_coll.insert_one(question, None).await {
                 Ok(_) => {}
                 Err(e) => {
                     println!("error, {e}");
@@ -204,21 +163,17 @@ impl MongoClient {
         }
 
         //insert papers collections
-        let document: Document = doc! {
-            "id" : paper.id.to_string(),
-            "date": paper.date.to_string(),
-            "paper_name": paper.paper_name,
-            "question_map": serde_json::to_string::<HashMap<u64,u64>>(&paper.question_map).expect("failed to serialize questionmap"),
-        };
+        
         match question_db
-            .collection::<Document>("papers")
-            .insert_one(document, None)
+            .collection::<Paper>("papers")
+            .insert_one(paper.clone(), None)
             .await
         {
             Ok(_) => {
                 println!("insert paper success");
             }
             Err(e) => {
+                println!("{:?}", &paper);
                 println!("insert paper failed : {:?}", e);
             }
         }
@@ -226,54 +181,31 @@ impl MongoClient {
         Ok(true)
     }
 
-    pub async fn insert_users(
-        &self,
-        name: String,
-        paper_name: String,
-        wrong_quesions: String,
-        homework_questions: String,
-    ) -> Result<bool, Box<dyn Error>> {
+    pub async fn insert_users(&self, user: User) -> Result<bool, Box<dyn Error>> {
         let question_db = self.client.database("test");
-        let user_coll = question_db.collection::<Document>("user");
-        let ui_coll = question_db.collection::<Document>("user_info");
-        let user_id = match ui_coll
-            .find_one(doc! {"name" : &name}, None)
-            .await
-            .expect("failed to execute query")
-        {
-            Some(doc) => {
-                let userinfo: UserInfo = bson::from_document(doc)?;
-                userinfo.id
-            }
-            None => {
-                return Err(Box::new(MongoError::NoSuchUser));
-            }
-        };
-        let wrong_questions: Vec<String> = wrong_quesions
-            .as_str()
-            .split(",")
-            .into_iter()
-            .map(|v| v.to_owned())
-            .collect();
-        let home_work_questions: Vec<String> = homework_questions
-            .as_str()
-            .split(",")
-            .into_iter()
-            .map(|v| v.to_owned())
-            .collect();
-        let doc = doc! {
-            "name" : name,
-            "id": user_id.to_string(),
-            "paper_name": paper_name,
-            "date": chrono::Local::now().format("%Y%m%d").to_string().parse::<u64>().unwrap().to_string(),
-            "wrong_questions": serde_json::to_string(&wrong_questions).unwrap(),
-            "homework_questions": serde_json::to_string(&home_work_questions).unwrap(),
-        };
-        match user_coll.insert_one(doc, None).await {
+        let user_coll = question_db.collection::<User>("user");
+        match user_coll.insert_one(user, None).await {
             Ok(_) => println!("insert user collection success"),
             Err(e) => println!("insert user collection failed : {}", e),
         }
         Ok(true)
+    }
+
+    pub async fn get_wrong_answer_list(
+        &self,
+        name: String,
+        paper_name: String,
+    ) -> Result<Vec<u64>, Box<dyn Error>> {
+        let question_db = self.client.database("test");
+        let user_coll = question_db.collection::<User>("user");
+        let student_paper = user_coll
+            .find_one(doc! {"name": &name, "paper_name": &paper_name}, None)
+            .await?;
+        if student_paper.is_none() {
+            return Err(Box::new(MongoError::NoSuchPaper));
+        }
+        let ui = student_paper.unwrap();
+        Ok(ui.wrong_question_list)
     }
 }
 
@@ -322,21 +254,32 @@ mod test {
     #[tokio::test]
     async fn test_insert_users() {
         let client = MongoClient::new().await.ok().unwrap();
-        match client
-            .insert_users(
-                "aaa".to_string(),
-                "20231216_七年级培优班".to_string(),
-                "1,2,3,4".to_string(),
-                "6,7,8".to_string(),
-            )
-            .await
-        {
+        let user = User {
+            name: "aaa".to_string(),
+            id: 1,
+            date: 20231216,
+            paper_name: "20231216_七年级培优班".to_string(),
+            wrong_question_list: vec![6, 7, 8],
+            homework_question_list: vec![1, 2, 3, 4],
+        };
+        match client.insert_users(user).await {
             Ok(_) => {
                 println!("OK!");
             }
             Err(e) => {
                 println!("error : {:?}", e);
             }
+        }
+    }
+
+    #[tokio::test]
+    async fn test_get_wrong_answer_list() {
+        let client = MongoClient::new().await.ok().unwrap();
+        let name = "aaa".to_string();
+        let paper_name = "20231216_七年级培优班".to_string();
+        match client.get_wrong_answer_list(name, paper_name).await {
+            Ok(v) => println!("{:?}", v),
+            Err(e) => println!("error : {:?}, {}", e, "test_get_wrong_answer_list"),
         }
     }
 }
