@@ -1,4 +1,4 @@
-use bson::{doc, Document};
+use bson::{doc, Document, Bson, oid::ObjectId};
 use mongodb::*;
 use std::collections::HashMap;
 use std::error::Error;
@@ -195,7 +195,7 @@ impl MongoClient {
         &self,
         name: String,
         paper_name: String,
-    ) -> Result<Vec<u64>, Box<dyn Error>> {
+    ) -> Result<Vec<(Option<Vec<String>>, Option<Vec<String>>)>, Box<dyn Error>> {
         let question_db = self.client.database("test");
         let user_coll = question_db.collection::<User>("user");
         let student_paper = user_coll
@@ -205,7 +205,18 @@ impl MongoClient {
             return Err(Box::new(MongoError::NoSuchPaper));
         }
         let ui = student_paper.unwrap();
-        Ok(ui.wrong_question_list)
+        let paper_coll = question_db.collection::<Paper>("papers");
+        let question_coll = question_db.collection::<Question>("questions");
+        let target_paper = paper_coll.find_one(doc!{"paper_name" : &paper_name}, None).await?.unwrap();
+        let paper_question_map = target_paper.question_map;
+        let mut questions: Vec<(Option<Vec<String>>, Option<Vec<String>>)> = vec![];
+        for q_idx in ui.wrong_question_list {
+            let real_id = paper_question_map.get(&q_idx).unwrap();
+            let real_id = real_id.to_string().parse::<u32>().unwrap();
+            let target_question = question_coll.find_one(doc!{"id": real_id}, None).await?.unwrap();
+            questions.push((target_question.q_url, target_question.qa_url));
+        }
+        Ok(questions)
     }
 }
 

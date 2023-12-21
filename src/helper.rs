@@ -39,7 +39,17 @@ pub struct UserInfo {
 }
 
 
-pub fn serialize_question_map<S>(question_map: &HashMap<u64, u64>, serializer: S) -> Result<S::Ok, S::Error>
+#[derive(Debug, Default, Serialize, Deserialize, Clone)]
+pub struct CreatePaperForm {
+    // Define the fields of your form data structure
+    user_name: String,
+    paper_name: String,
+    wrong_answer_list: Vec<u64>
+    // Add more fields as needed
+}
+
+
+fn serialize_question_map<S>(question_map: &HashMap<u64, u64>, serializer: S) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
 {
@@ -47,7 +57,8 @@ where
     map.serialize(serializer)
 }
 
-pub fn deserialize_question_map<'de, D>(deserializer: D) -> Result<HashMap<u64, u64>, D::Error>
+
+fn deserialize_question_map<'de, D>(deserializer: D) -> Result<HashMap<u64, u64>, D::Error>
 where
     D: Deserializer<'de>,
 {
