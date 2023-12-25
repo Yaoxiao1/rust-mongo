@@ -10,15 +10,16 @@ const PaperTemplate = () => {
     e.preventDefault();
 
     // Create a data object with the form values
+
     const data = {
       user_name: userName,
       paper_name: paperName,
-      wrong_answer_list: wrongAnswerList,
+      wrong_answer_list: wrongAnswerList.map(Number),
     };
 
     try {
       // Send a POST request to the backend
-      const response = await fetch('/api/submitForm', {
+      const response = await fetch('http://localhost:8080/api/submitForm', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -28,7 +29,7 @@ const PaperTemplate = () => {
 
       if (response.ok) {
         // Parse the response and extract the list of picture URLs
-        const { picture_urls } = await response.json();
+        const picture_urls = await response.json();
         setPictureUrls(picture_urls);
       } else {
         console.error('Failed to submit the form');
@@ -77,6 +78,7 @@ const PaperTemplate = () => {
           <ul>
             {pictureUrls.map((url) => (
               <li key={url}>
+                <p>{url}</p>
                 <img src={url} alt="Wrong Answer" />
               </li>
             ))}

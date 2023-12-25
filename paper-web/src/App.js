@@ -6,7 +6,7 @@ import UpdateDb from './components/update_db';
 function App() {
   return (
     <div className="App">
-      <GeneratePaper></GeneratePaper>
+      {/* <GeneratePaper></GeneratePaper> */}
       <PaperTemplate></PaperTemplate>  
       <UpdateDb></UpdateDb>
     </div>

@@ -1,6 +1,6 @@
 use actix_cors::Cors;
 use actix_web::middleware::Logger;
-use actix_web::{get, web, App, Error, HttpRequest, HttpResponse, HttpServer, Responder, Result};
+use actix_web::{get, post, web, App, Error, HttpRequest, HttpResponse, HttpServer, Responder, Result};
 use env_logger::Env;
 use helper::CreatePaperForm;
 use serde::Deserialize;
@@ -8,6 +8,7 @@ use serde::Serialize;
 use tokio;
 mod mongo;
 mod helper;
+
 
 
 
@@ -23,7 +24,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(Logger::default())
             .wrap(Logger::new("%a %{User-Agent}i"))
             .service(show_dbs)
-            .service(web::resource("/api/submitForm").route(web::post().to(submit_form)))
+            .route("/api/submitForm", web::post().to(submit_form))
     })
     .bind(("127.0.0.1", 8080))?
     .run()
@@ -41,10 +42,13 @@ async fn show_dbs() -> Result<impl Responder> {
     Ok(web::Json(db_list))
 }
 
+
 async fn submit_form(data: web::Json<CreatePaperForm>) -> impl Responder {
 
     // Access the form data using `data.field1`, `data.field2`, etc.
     // Process the form data as needed
+
+    println!("submit_from : {:?}", &data);
 
     // Create a list of strings
     let string_list: Vec<String> = vec![
