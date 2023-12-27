@@ -19,6 +19,7 @@ enum MongoError {
     NoSuchUser,
     NoSuchId,
     NoSuchPaper,
+    NoSuchName
 }
 
 impl std::fmt::Display for MongoError {
@@ -195,7 +196,7 @@ impl MongoClient {
         &self,
         name: String,
         paper_name: String,
-    ) -> Result<Vec<(Option<Vec<String>>, Option<Vec<String>>)>, Box<dyn Error>> {
+    ) -> Result<Vec<Question>, Box<dyn Error>> {
         let question_db = self.client.database("test");
         let user_coll = question_db.collection::<User>("user");
         let student_paper = user_coll
@@ -209,14 +210,33 @@ impl MongoClient {
         let question_coll = question_db.collection::<Question>("questions");
         let target_paper = paper_coll.find_one(doc!{"paper_name" : &paper_name}, None).await?.unwrap();
         let paper_question_map = target_paper.question_map;
-        let mut questions: Vec<(Option<Vec<String>>, Option<Vec<String>>)> = vec![];
+        let mut questions: Vec<Question> = vec![];
         for q_idx in ui.wrong_question_list {
             let real_id = paper_question_map.get(&q_idx).unwrap();
             let real_id = real_id.to_string().parse::<u32>().unwrap();
             let target_question = question_coll.find_one(doc!{"id": real_id}, None).await?.unwrap();
-            questions.push((target_question.q_url, target_question.qa_url));
+            questions.push(target_question);
         }
         Ok(questions)
+    }
+
+    pub async fn find_user_id(&self, name: String) -> Result<u64, Box<dyn Error>> {
+        let question_db = self.client.database("test");
+        let userinfo_coll = question_db.collection::<UserInfo>("user_info");
+        let id = match userinfo_coll.find_one(doc!{
+            "name" : name
+        }, None).await {
+            Ok(id) => {
+                if id.is_none() {
+                    return Err(Box::new(MongoError::NoSuchName));
+                }
+                id.unwrap().id
+            }
+            Err(e) => {
+                return Err(Box::new(e));
+            }
+        };
+        Ok(id)
     }
 }
 

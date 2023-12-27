@@ -49,14 +49,30 @@ async fn submit_form(data: web::Json<CreatePaperForm>) -> impl Responder {
     // Process the form data as needed
 
     println!("submit_from : {:?}", &data);
-
-    // Create a list of strings
-    let string_list: Vec<String> = vec![
-        "String 1".to_string(),
-        "String 2".to_string(),
-        "String 3".to_string(),
-    ];
-
+    let form = data.into_inner();
+    let mongo_client = mongo::MongoClient::new().await.unwrap();
+    let userid = mongo_client.find_user_id(form.user_name.clone()).await.unwrap();
+    let user = helper::User {
+        id: userid,
+        name: form.user_name.clone(),
+        paper_name: form.paper_name.clone(),
+        date: helper::get_date_u64(),
+        wrong_question_list: form.wrong_answer_list,
+        homework_question_list: form.homework_list
+    };
+    match mongo_client.insert_users(user).await {
+        Ok(_) => {},
+        Err(e) => {
+            log::error!("Error: {e}");
+        }
+    }
+    let lst = match mongo_client.get_wrong_answer_list(form.user_name.clone(), form.paper_name.clone()).await {
+        Ok(v) => v,
+        Err(e) => {
+            log::error!("Error: {e}");
+            vec![]
+        }
+    };
     // Return the list of strings as the response
-    HttpResponse::Ok().json(string_list)
+    HttpResponse::Ok().json(lst)
 }

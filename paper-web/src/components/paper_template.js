@@ -4,6 +4,7 @@ const PaperTemplate = () => {
   const [userName, setUserName] = useState('');
   const [paperName, setPaperName] = useState('');
   const [wrongAnswerList, setWrongAnswerList] = useState([]);
+  const [homeworkList, setHomeworkList] = useState([]);
   const [pictureUrls, setPictureUrls] = useState([]);
 
   const handleSubmit = async (e) => {
@@ -15,6 +16,7 @@ const PaperTemplate = () => {
       user_name: userName,
       paper_name: paperName,
       wrong_answer_list: wrongAnswerList.map(Number),
+      homework_list: homeworkList.map(Number)
     };
 
     try {
@@ -69,6 +71,15 @@ const PaperTemplate = () => {
           />
         </label>
         <br />
+        <label>
+          Homework List:
+          <input
+            type="text"
+            value={homeworkList}
+            onChange={(e) => setHomeworkList(e.target.value.split(','))}
+          />
+        </label>
+        <br />
         <button type="submit">Submit</button>
       </form>
 
@@ -77,9 +88,12 @@ const PaperTemplate = () => {
           <h2>Wrong Answer Pictures:</h2>
           <ul>
             {pictureUrls.map((url) => (
-              <li key={url}>
-                <p>{url}</p>
-                <img src={url} alt="Wrong Answer" />
+              <li key={url.id}>
+                {
+                    url.q_url.map(q => (
+                        <img src={q} alt="Wrong Answer"></img>
+                    ))
+                }
               </li>
             ))}
           </ul>

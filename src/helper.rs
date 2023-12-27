@@ -1,3 +1,4 @@
+use chrono::Local;
 use serde::{Serialize, Deserialize, Serializer, Deserializer};
 use std::collections::HashMap;
 
@@ -42,9 +43,10 @@ pub struct UserInfo {
 #[derive(Debug, Default, Serialize, Deserialize, Clone)]
 pub struct CreatePaperForm {
     // Define the fields of your form data structure
-    user_name: String,
-    paper_name: String,
-    wrong_answer_list: Vec<u64>
+    pub user_name: String,
+    pub paper_name: String,
+    pub wrong_answer_list: Vec<u64>,
+    pub homework_list: Vec<u64>
     // Add more fields as needed
 }
 
@@ -65,4 +67,21 @@ where
     let map: HashMap<String, u64> = Deserialize::deserialize(deserializer)?;
     let question_map: HashMap<u64, u64> = map.into_iter().map(|(k, v)| (k.parse().unwrap(), v)).collect();
     Ok(question_map)
+}
+
+pub fn get_date_u64() -> u64 {
+    let current_date = Local::now().format("%Y%m%d").to_string();
+    let parsed_date = current_date.parse::<u64>().unwrap();
+    parsed_date
+}
+
+
+mod test {
+    use super::*;
+    #[test]
+    fn test_get_date() {
+        let date = get_date_u64();
+        assert_eq!(date, 20231227);
+        assert_ne!(date, 20231226);
+    }
 }
