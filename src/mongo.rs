@@ -254,7 +254,7 @@ mod test {
         let client = MongoClient::new().await.ok().unwrap();
         match client
             .insert_questions(
-                "/home/yaoxiao/mydoc/rust-mongo/static/20231216/20231216_七年级培优班",
+                "/home/yaoxiao/mydoc/rust-mongo/static/20231223/20231223_七年级培优班",
             )
             .await
         {
@@ -271,7 +271,7 @@ mod test {
     async fn test_clear_collection() {
         let client = MongoClient::new().await.ok().unwrap();
         let test = client.client.database("test");
-        let question_coll = test.collection::<Document>("questions");
+        let question_coll = test.collection::<Document>("user");
         match question_coll.delete_many(doc! {}, None).await {
             Ok(_) => {
                 println!("success");

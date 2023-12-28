@@ -6,7 +6,7 @@ const PaperTemplate = () => {
   const [wrongAnswerList, setWrongAnswerList] = useState([]);
   const [homeworkList, setHomeworkList] = useState([]);
   const [pictureUrls, setPictureUrls] = useState([]);
-
+  const prefix = "/home/yaoxiao/mydoc/rust-mongo";
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -82,21 +82,24 @@ const PaperTemplate = () => {
         <br />
         <button type="submit">Submit</button>
       </form>
-
+      {
+        pictureUrls.length === 0 && (
+          <p>No pictures to display</p>
+        )
+      }
       {pictureUrls.length > 0 && (
         <div>
           <h2>Wrong Answer Pictures:</h2>
-          <ul>
-            {pictureUrls.map((url) => (
-              <li key={url.id}>
-                {
-                    url.q_url.map(q => (
-                        <img src={q} alt="Wrong Answer"></img>
-                    ))
-                }
+          <ol>
+            {pictureUrls.map((url, index) => (
+              <li key={url.id} style={{ display: 'flex', alignItems: 'flex-start' }}>
+                <span style={{ marginRight: '10px' }}>{index + 1}.</span>
+                {url.q_url.map((q) => (
+                  <img src={q.replace(prefix, '.')} alt="Wrong Answer" />
+                ))}
               </li>
             ))}
-          </ul>
+        </ol>
         </div>
       )}
     </div>
