@@ -22,8 +22,8 @@ X0, Y0 = (0, 0)
 RECT_WIDTH = 825
 Q = "Q_"
 QA = "QA_"
-PREFIX = "20231223_"
-POSTFIX = "_七年级|第九章|整式|整式的除法"
+PREFIX = "20231230_"
+POSTFIX = "_六年级|期末"
 FILE_DIRECTORY = "./"
 
 def on_click(x, y, button, pressed):
