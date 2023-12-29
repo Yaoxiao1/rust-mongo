@@ -23,7 +23,7 @@ RECT_WIDTH = 825
 Q = "Q_"
 QA = "QA_"
 PREFIX = "20231230_"
-POSTFIX = "_六年级|期末"
+POSTFIX = "_七年级|第十章|分式|整数指数幂及其运算"
 FILE_DIRECTORY = "./"
 
 def on_click(x, y, button, pressed):
