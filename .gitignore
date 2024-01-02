@@ -3,6 +3,5 @@
 /dist
 /yew
 */node_modules
-/static
+**static
 /tmp
-*/public/static
