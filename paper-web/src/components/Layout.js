@@ -9,17 +9,17 @@ const Layout = () => {
             <Link to="/">Home</Link>
           </li>
           <li>
-            <Link to="/paper_template">PaperTemplate</Link>
+            <Link to="/update_user">UpdateUser</Link>
           </li>
           <li>
-            <Link to="/newpaper">Newpaper</Link>
+            <Link to="/generate">Generate</Link>
           </li>
         </ul>
       </nav>
 
       <Outlet />
     </>
-  )
+  );
 };
 
 export default Layout;

@@ -2,7 +2,7 @@ use actix_cors::Cors;
 use actix_web::middleware::Logger;
 use actix_web::{get, post, web, App, Error, HttpRequest, HttpResponse, HttpServer, Responder, Result};
 use env_logger::Env;
-use helper::CreatePaperForm;
+use helper::{CreatePaperForm, UpdateUserForm, SearchUserForm};
 use serde::Deserialize;
 use serde::Serialize;
 use tokio;
@@ -25,6 +25,8 @@ async fn main() -> std::io::Result<()> {
             .wrap(Logger::new("%a %{User-Agent}i"))
             .service(show_dbs)
             .route("/api/submitForm", web::post().to(submit_form))
+            .route("/api/updateUser", web::post().to(update_user))
+            .route("/api/searchUser", web::post().to(search_user))
     })
     .bind(("127.0.0.1", 8080))?
     .run()
@@ -74,5 +76,53 @@ async fn submit_form(data: web::Json<CreatePaperForm>) -> impl Responder {
         }
     };
     // Return the list of strings as the response
+    HttpResponse::Ok().json(lst)
+}
+
+async fn update_user(data: web::Json<UpdateUserForm>) -> impl Responder {
+
+    // Access the form data using `data.field1`, `data.field2`, etc.
+    // Process the form data as needed
+
+    println!("submit_from : {:?}", &data);
+    let form = data.into_inner();
+    let mongo_client = mongo::MongoClient::new().await.unwrap();
+    let userid = match mongo_client.find_user_id(form.user_name.clone()).await {
+        Ok(id) => id,
+        Err(e) => {
+            log::error!("{e:?}");
+            return HttpResponse::InternalServerError().body("username not found in database");
+        }
+    };
+    let user = helper::User {
+        id: userid,
+        name: form.user_name.clone(),
+        paper_name: form.paper_name.clone(),
+        date: helper::get_date_u64(),
+        wrong_question_list: form.wrong_answer_list,
+        homework_question_list: form.homework_list
+    };
+    match mongo_client.insert_users(user).await {
+        Ok(_) => {},
+        Err(e) => {
+            log::error!("Error: {e}");
+            return HttpResponse::InternalServerError().body(e.to_string());
+        }
+    }
+    // Return the list of strings as the response
+    HttpResponse::Ok().json(())
+}
+
+async fn search_user(data: web::Json<SearchUserForm>) -> impl Responder {
+    log::info!("submit_from : {:?}", &data);
+    let form = data.into_inner();
+    let mongo_client = mongo::MongoClient::new().await.unwrap();
+    let lst = match mongo_client.get_wrong_answer_list(form.user_name.clone(), form.paper_name.clone()).await {
+        Ok(v) => v,
+        Err(e) => {
+            log::error!("Error: {e}");
+            return HttpResponse::InternalServerError().body(e.to_string());
+        }
+    };
     HttpResponse::Ok().json(lst)
 }

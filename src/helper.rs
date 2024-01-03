@@ -10,7 +10,7 @@ pub struct Question {
     pub id: u64,
     pub q_url: Option<Vec<String>>,
     pub qa_url: Option<Vec<String>>,
-    pub short_answer: Option<String>,
+    pub short_answer: Option<Vec<String>>,
     pub tags: String,
 }
 
@@ -47,6 +47,25 @@ pub struct CreatePaperForm {
     pub paper_name: String,
     pub wrong_answer_list: Vec<u64>,
     pub homework_list: Vec<u64>
+    // Add more fields as needed
+}
+
+
+#[derive(Debug, Default, Serialize, Deserialize, Clone)]
+pub struct UpdateUserForm {
+    // Define the fields of your form data structure
+    pub user_name: String,
+    pub paper_name: String,
+    pub wrong_answer_list: Vec<u64>,
+    pub homework_list: Vec<u64>
+    // Add more fields as needed
+}
+
+#[derive(Debug, Default, Serialize, Deserialize, Clone)]
+pub struct SearchUserForm {
+    // Define the fields of your form data structure
+    pub user_name: String,
+    pub paper_name: String,
     // Add more fields as needed
 }
 

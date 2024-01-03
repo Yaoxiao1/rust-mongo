@@ -1,29 +1,88 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 
+// 根据输入的用户名和试卷名，查询数据库调出对应的错题列表和作业列表，导出到试卷界面
 function GeneratePaper(props) {
   const [userName, setUserName] = useState("");
-  const [paperList, setPaperList] = useState("");
+  const [paperName, setPaperName] = useState("");
   const [date, setDate] = useState("");
   const [questionList, setQuestionList] = useState("");
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const data = {
+      user_name: userName,
+      paper_name: paperName,
+    };
+    try {
+      // Send a POST request to the backend
+      const response = await fetch("http://localhost:8080/api/searchUser", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (response.ok) {
+        // Parse the response and extract the list of picture URLs
+        const question = await response.json();
+        setQuestionList(question);
+      } else {
+        const errorMessage = await response.text();
+        console.error("Failed to submit the form:", errorMessage);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    }
   };
-  const openInNewTab = (url) => {
-    window.open(url, "_blank", "noreferrer");
-  };
+
   return (
     <>
       <div>
-        {questionList.length >= 0 && (
-          <Link
-            to={{
-              pathname: "newpaper",
-            }}
-            state={{ a: "1", b: "2" }}
-          >
-            go to newpaper
-          </Link>
+        {questionList.length > 0 && (
+          <>
+            <Link
+              to={{
+                pathname: "/newpaper",
+              }}
+              state={{
+                question: questionList,
+                type: "question",
+                date: date,
+              }}
+            >
+              Question Paper
+            </Link>
+            <br />
+            <Link
+              to={{
+                pathname: "/newpaper",
+              }}
+              state={{
+                question: questionList,
+                type: "full_answer",
+                date: date,
+              }}
+            >
+              Detail Answer Paper
+            </Link>
+            <br />
+            <Link
+              to={{
+                pathname: "/newpaper",
+              }}
+              state={{
+                question: questionList,
+                type: "brief_answer",
+                date: date,
+              }}
+            >
+              Brief Answer Paper
+            </Link>
+            <br />
+            {/* todo, need a buttion to insert a document to Mongo to keep track of the new paper*/}
+          </>
         )}
         {questionList.length === 0 && (
           <form onSubmit={handleSubmit}>
@@ -37,12 +96,12 @@ function GeneratePaper(props) {
             </label>
             <br />
             <label>
-              Paper List:
+              Paper Name:
               <input
                 type="text"
-                value={userName}
+                value={paperName}
                 placeholder="seperate by comma(,)"
-                onChange={(e) => setPaperList(e.target.value)}
+                onChange={(e) => setPaperName(e.target.value)}
               />
             </label>
             <br />
@@ -50,13 +109,19 @@ function GeneratePaper(props) {
               Date:
               <input
                 type="text"
-                value={userName}
+                value={date}
                 placeholder="YYYYmmDD, eg.(20231216)"
                 onChange={(e) => setDate(e.target.value)}
               />
             </label>
             <br />
+            <button type="submit">Submit</button>
           </form>
+        )}
+        {questionList.length > 0 && (
+          <div>
+            {<p>{questionList.map((question) => question.id).join(", ")}</p>}
+          </div>
         )}
       </div>
     </>
