@@ -48,39 +48,13 @@ function GeneratePaper(props) {
               }}
               state={{
                 question: questionList,
-                type: "question",
                 date: date,
               }}
             >
               Question Paper
             </Link>
             <br />
-            <Link
-              to={{
-                pathname: "/newpaper",
-              }}
-              state={{
-                question: questionList,
-                type: "full_answer",
-                date: date,
-              }}
-            >
-              Detail Answer Paper
-            </Link>
-            <br />
-            <Link
-              to={{
-                pathname: "/newpaper",
-              }}
-              state={{
-                question: questionList,
-                type: "brief_answer",
-                date: date,
-              }}
-            >
-              Brief Answer Paper
-            </Link>
-            <br />
+
             {/* todo, need a buttion to insert a document to Mongo to keep track of the new paper*/}
           </>
         )}
