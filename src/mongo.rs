@@ -19,7 +19,8 @@ enum MongoError {
     NoSuchUser,
     NoSuchId,
     NoSuchPaper,
-    NoSuchName
+    NoSuchName,
+    RepeatedUserName,
 }
 
 impl std::fmt::Display for MongoError {
@@ -98,6 +99,7 @@ impl MongoClient {
             if let [QA, _date, question_number, question_tags, ..] = res.as_slice() {
                 let q_no: u64 = question_number.split("-").nth(0).unwrap().parse().unwrap();
                 let abs_q_no = q_no + cnt;
+                let question_tags = question_tags.split(".").nth(0).unwrap();
                 paper.question_map.insert(q_no, abs_q_no);
                 if question_map.contains_key(&abs_q_no) {
                     if QA == &"Q" {
@@ -192,6 +194,26 @@ impl MongoClient {
         Ok(true)
     }
 
+    pub async fn insert_user_info(&self, username: String) -> Result<(), Box<dyn Error>> {
+        let question_db = self.client.database("test");
+        let userinfo_coll = question_db.collection::<UserInfo>("user_info");
+        if let Ok(_id) = self.find_user_id(username.clone()).await {
+            return Err(Box::new(MongoError::RepeatedUserName));
+        } 
+        let cnt = userinfo_coll
+           .estimated_document_count(None)
+           .await.unwrap_or(0);
+        let user_info = UserInfo {
+            id: cnt.into(),
+            name: username,
+        };
+        match userinfo_coll.insert_one(user_info, None).await {
+            Ok(_) => println!("insert user_info collection success"),
+            Err(e) => return Err(Box::new(e))
+        }
+        Ok(())
+    }
+
     pub async fn get_wrong_answer_list(
         &self,
         name: String,
@@ -271,7 +293,7 @@ mod test {
     async fn test_clear_collection() {
         let client = MongoClient::new().await.ok().unwrap();
         let test = client.client.database("test");
-        let question_coll = test.collection::<Document>("user");
+        let question_coll = test.collection::<Document>("questions");
         match question_coll.delete_many(doc! {}, None).await {
             Ok(_) => {
                 println!("success");

@@ -14,6 +14,12 @@ const Layout = () => {
           <li>
             <Link to="/generate">Generate</Link>
           </li>
+          <li>
+            <Link to="/insertPaper">InsertPaper</Link>
+          </li>
+          <li>
+            <Link to="/insertUserInfo">insertUserInfo</Link>
+          </li>
         </ul>
       </nav>
 

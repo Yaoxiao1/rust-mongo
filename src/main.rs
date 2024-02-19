@@ -2,7 +2,7 @@ use actix_cors::Cors;
 use actix_web::middleware::Logger;
 use actix_web::{get, post, web, App, Error, HttpRequest, HttpResponse, HttpServer, Responder, Result};
 use env_logger::Env;
-use helper::{CreatePaperForm, UpdateUserForm, SearchUserForm};
+use helper::{CreatePaperForm, UpdateUserForm, SearchUserForm, PaperPath};
 use serde::Deserialize;
 use serde::Serialize;
 use tokio;
@@ -27,6 +27,8 @@ async fn main() -> std::io::Result<()> {
             .route("/api/submitForm", web::post().to(submit_form))
             .route("/api/updateUser", web::post().to(update_user))
             .route("/api/searchUser", web::post().to(search_user))
+            .route("/api/insertQuestions", web::post().to(insert_paper_and_questions))
+            .route("/api/insertUserInfo", web::post().to(insert_user_info))
     })
     .bind(("127.0.0.1", 8080))?
     .run()
@@ -113,6 +115,20 @@ async fn update_user(data: web::Json<UpdateUserForm>) -> impl Responder {
     HttpResponse::Ok().json(())
 }
 
+async fn insert_user_info(data: web::Json<String>) -> impl Responder {
+    log::info!("insert user info, data: {:?}", &data);
+    let username = data.into_inner();
+    let mongo_client = mongo::MongoClient::new().await.unwrap();
+    match mongo_client.insert_user_info(username).await {
+        Ok(_) => {},
+        Err(e) => {
+            log::error!("Error: {e}");
+            return HttpResponse::InternalServerError().body(e.to_string());
+        }
+    }
+    HttpResponse::Ok().json(())
+}
+
 async fn search_user(data: web::Json<SearchUserForm>) -> impl Responder {
     log::info!("submit_from : {:?}", &data);
     let form = data.into_inner();
@@ -125,4 +141,21 @@ async fn search_user(data: web::Json<SearchUserForm>) -> impl Responder {
         }
     };
     HttpResponse::Ok().json(lst)
+}
+
+async fn insert_paper_and_questions(data: web::Json<String>) -> impl Responder {
+    log::info!("insert questions and papers, path: {:?}", &data);
+    let path = data.into_inner();
+    let mongo_client = mongo::MongoClient::new().await.unwrap();
+    match mongo_client.insert_questions(&path).await {
+        Ok(_) => {
+
+        }
+        Err(e) => {
+            log::error!("Error: {e}");
+            return HttpResponse::InternalServerError().body(e.to_string());
+        }
+    }
+    
+    HttpResponse::Ok().json(())
 }

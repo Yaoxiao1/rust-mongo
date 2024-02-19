@@ -69,6 +69,9 @@ pub struct SearchUserForm {
     // Add more fields as needed
 }
 
+#[derive(Debug, Default, Serialize, Deserialize, Clone)]
+pub struct PaperPath(pub String);
+
 
 fn serialize_question_map<S>(question_map: &HashMap<u64, u64>, serializer: S) -> Result<S::Ok, S::Error>
 where

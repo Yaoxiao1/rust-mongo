@@ -11,10 +11,14 @@ import React, { useState } from "react";
 const UpdateUser = () => {
   const [userName, setUserName] = useState("");
   const [paperName, setPaperName] = useState("");
-  const [wrongAnswerList, setWrongAnswerList] = useState([]);
-  const [homeworkList, setHomeworkList] = useState([]);
+  const [wrongAnswerList, setWrongAnswerList] = useState("");
+  const [homeworkList, setHomeworkList] = useState("");
   const [submit, setSubmit] = useState(false);
   const [data, setData] = useState({});
+
+  const convertToNumberArray = (inputString) => {
+    return inputString.split(",").map((item) => Number(item.trim()));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,10 +26,11 @@ const UpdateUser = () => {
     const data = {
       user_name: userName,
       paper_name: paperName,
-      wrong_answer_list: wrongAnswerList.map(Number),
-      homework_list: homeworkList.map(Number),
+      wrong_answer_list: convertToNumberArray(wrongAnswerList),
+      homework_list: convertToNumberArray(homeworkList),
     };
     setData(data);
+    console.log(data);
     try {
       // Send a POST request to the backend
       const response = await fetch("http://localhost:8080/api/updateUser", {
@@ -87,6 +92,7 @@ const UpdateUser = () => {
           />
         </label>
         <br />
+        <input type="submit" value="Submit"></input>
       </form>
       {submit ? (
         <>
