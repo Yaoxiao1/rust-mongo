@@ -22,8 +22,8 @@ X0, Y0 = (0, 0)
 RECT_WIDTH = 825
 Q = "Q_"
 QA = "QA_"
-PREFIX = "20240113_"
-POSTFIX = "_七年级|第十二章|实数|分数指数幂"
+PREFIX = "20240224_"
+POSTFIX = "_七年级|第十四章|三角形|解答题"
 FILE_DIRECTORY = "./"
 
 def on_click(x, y, button, pressed):

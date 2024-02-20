@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 function GeneratePaper(props) {
   const [userName, setUserName] = useState("");
   const [paperName, setPaperName] = useState("");
-  const [date, setDate] = useState("");
+  const [title, setTitle] = useState("");
   const [questionList, setQuestionList] = useState("");
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -48,7 +48,7 @@ function GeneratePaper(props) {
               }}
               state={{
                 question: questionList,
-                date: date,
+                title: title,
               }}
             >
               Question Paper
@@ -83,9 +83,9 @@ function GeneratePaper(props) {
               Date:
               <input
                 type="text"
-                value={date}
-                placeholder="YYYYmmDD, eg.(20231216)"
-                onChange={(e) => setDate(e.target.value)}
+                value={title}
+                placeholder="输入试卷标题"
+                onChange={(e) => setTitle(e.target.value)}
               />
             </label>
             <br />

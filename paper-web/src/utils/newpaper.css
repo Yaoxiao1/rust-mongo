@@ -1,0 +1,33 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+
+.paper-name {
+    font-size: 24px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.questions {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.question {
+    border: 1px solid #ccc;
+    padding: 10px;
+}
+
+.question-number {
+    font-weight: bold;
+    margin-top: 5px;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+}
